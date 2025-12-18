@@ -43,11 +43,7 @@ const BattleLane: React.FC<BattleLaneProps> = ({ units, laneLength }) => {
               ${unit.state === 'ATTACK' ? 'animate-bounce-short' : ''}
               ${unit.state === 'WALK' ? 'animate-pulse-fast' : ''}
             `}>
-              {unit.imageUrl ? (
-                <img src={unit.imageUrl} alt={unit.emoji} className="w-full h-full object-contain" />
-              ) : (
-                <span className="text-3xl">{unit.emoji}</span>
-              )}
+              <span className="text-3xl">{unit.emoji}</span>
             </div>
 
             {unit.state === 'ATTACK' && (

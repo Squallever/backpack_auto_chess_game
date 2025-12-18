@@ -10,7 +10,7 @@ interface ShopProps {
   selectedStorageId: string | null;
   onSellStorage: (item: PlacedItem) => void;
   onEquipStorage: (item: PlacedItem) => void;
-  shopItems: Item[]; // Mapped from constants in App.tsx
+  shopItems: Item[]; 
 }
 
 const getRarityColor = (rarity: Rarity) => {
@@ -28,8 +28,8 @@ const Tooltip: React.FC<{ item: Item; x: number; y: number }> = ({ item, x, y })
   return (
     <div className="fixed z-[110] w-64 bg-slate-900/95 backdrop-blur border-2 border-slate-500 rounded-xl shadow-2xl p-3 flex flex-col gap-2 pointer-events-none animate-in fade-in zoom-in-95 duration-150" style={{ left: x, top: y }}>
       <div className={`flex items-start gap-3 pb-2 border-b border-slate-700`}>
-          <div className="w-12 h-12 bg-slate-800 p-1 rounded-lg border border-slate-600 shadow-inner flex items-center justify-center overflow-hidden">
-             {item.imageUrl ? <img src={item.imageUrl} alt={item.name} className="w-full h-full object-contain" /> : <span className="text-3xl">{item.emoji}</span>}
+          <div className="w-12 h-12 bg-slate-800 p-1 rounded-lg border border-slate-600 shadow-inner flex items-center justify-center">
+             <span className="text-3xl">{item.emoji}</span>
           </div>
           <div className="flex-1 min-w-0">
               <div className={`font-bold text-sm leading-tight ${item.rarity === Rarity.LEGENDARY ? 'text-yellow-400' : 'text-white'}`}>{item.name}</div>
@@ -51,7 +51,6 @@ const Tooltip: React.FC<{ item: Item; x: number; y: number }> = ({ item, x, y })
           <div className="flex items-center justify-between bg-slate-800 px-2 py-1 rounded"><span className="text-slate-400 flex items-center gap-1"><PackageOpen size={10}/> Size</span><span className="text-white font-bold">{item.width} x {item.height}</span></div>
       </div>
       <div className="bg-slate-800/80 p-2 rounded text-[10px] text-slate-300 italic leading-snug border border-slate-700">{item.effectDescription || "No additional effects."}</div>
-      <div className="text-[9px] text-accent/80 text-center font-bold uppercase tracking-widest pt-1">{item.type === ItemType.BOOSTER ? "Buffs Adjacent Units" : "Buffable by Boosters"}</div>
     </div>
   );
 };
@@ -89,7 +88,7 @@ const Shop: React.FC<ShopProps> = ({ gold, onBuyItem, storageItems, onStorageIte
               className={`relative p-2 rounded-lg border flex flex-col items-start text-left transition-all min-h-[80px] ${getRarityColor(item.rarity)} ${!canAfford ? 'opacity-40 grayscale cursor-not-allowed' : 'hover:scale-[1.02] active:scale-95 hover:shadow-lg hover:border-slate-400'}`}
             >
               <div className="flex justify-between w-full mb-1">
-                <span className="w-8 h-8 flex items-center justify-center filter drop-shadow-md overflow-hidden">{item.imageUrl ? <img src={item.imageUrl} className="w-full h-full object-contain" /> : <span className="text-2xl">{item.emoji}</span>}</span>
+                <span className="w-8 h-8 flex items-center justify-center filter drop-shadow-md overflow-hidden"><span className="text-2xl">{item.emoji}</span></span>
                 <span className="font-bold text-xs bg-black/60 px-1.5 py-0.5 rounded flex items-center gap-1 text-yellow-100">{item.cost}<Coins size={8} /></span>
               </div>
               <div className="font-bold text-[10px] truncate w-full text-white leading-tight mb-1">{item.name}</div>
@@ -100,7 +99,7 @@ const Shop: React.FC<ShopProps> = ({ gold, onBuyItem, storageItems, onStorageIte
       </div>
       <div className="h-24 bg-slate-900/60 rounded-xl border-t-2 border-slate-700 p-2 flex flex-col gap-1 shrink-0">
          <div className="flex justify-between items-center mb-1"><h3 className="text-slate-400 text-xs font-bold uppercase flex items-center gap-1"><PackageOpen size={12}/> Storage</h3>{selectedStorageId && <div className="flex gap-2"><button onClick={() => { const i = storageItems.find(x => x.id === selectedStorageId); if(i) onEquipStorage(i); }} className="bg-green-700 text-white px-2 py-0.5 rounded text-[10px] hover:bg-green-600 flex items-center gap-1 font-bold"><ArrowUpFromLine size={10}/> EQUIP</button><button onClick={() => { const i = storageItems.find(x => x.id === selectedStorageId); if(i) onSellStorage(i); }} className="bg-red-900/50 text-red-300 px-2 py-0.5 rounded border border-red-800 text-[10px] hover:bg-red-900 flex items-center gap-1 font-bold"><Trash2 size={10}/> SELL</button></div>}</div>
-         <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide h-full items-center">{storageItems.length === 0 && <span className="text-slate-600 text-xs italic px-2">Storage Empty</span>}{storageItems.map((sItem) => <div key={sItem.id} onClick={() => onStorageItemClick(sItem)} className={`w-12 h-12 shrink-0 bg-slate-800 border-2 rounded-lg flex items-center justify-center cursor-pointer transition-all overflow-hidden p-1 ${selectedStorageId === sItem.id ? 'border-accent ring-2 ring-accent scale-105' : 'border-slate-600 hover:border-slate-500'}`}>{sItem.item.imageUrl ? <img src={sItem.item.imageUrl} className="w-full h-full object-contain" /> : <span className="text-2xl">{sItem.item.emoji}</span>}</div>)}</div>
+         <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide h-full items-center">{storageItems.length === 0 && <span className="text-slate-600 text-xs italic px-2">Storage Empty</span>}{storageItems.map((sItem) => <div key={sItem.id} onClick={() => onStorageItemClick(sItem)} className={`w-12 h-12 shrink-0 bg-slate-800 border-2 rounded-lg flex items-center justify-center cursor-pointer transition-all overflow-hidden p-1 ${selectedStorageId === sItem.id ? 'border-accent ring-2 ring-accent scale-105' : 'border-slate-600 hover:border-slate-500'}`}><span className="text-2xl">{sItem.item.emoji}</span></div>)}</div>
       </div>
     </div>
   );

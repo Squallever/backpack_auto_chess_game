@@ -107,11 +107,7 @@ const Backpack: React.FC<BackpackProps> = ({
                   className="relative z-10 select-none transform transition-transform duration-300 w-full h-full p-1" 
                   style={{ transform: `rotate(${placedItem.rotation}deg)` }}
                 >
-                   {placedItem.item.imageUrl ? (
-                     <img src={placedItem.item.imageUrl} alt={placedItem.item.name} className="w-full h-full object-contain" />
-                   ) : (
-                     <div className="w-full h-full flex items-center justify-center text-2xl" style={{ transform: `scale(${Math.min(w, h)})` }}>{placedItem.item.emoji}</div>
-                   )}
+                   <div className="w-full h-full flex items-center justify-center text-2xl" style={{ transform: `scale(${Math.min(w, h)})` }}>{placedItem.item.emoji}</div>
                 </div>
 
                 <div className="absolute top-1 left-1 z-20 opacity-70">{placedItem.item.type === ItemType.BOOSTER && <Zap size={8} className="text-yellow-400" />}</div>

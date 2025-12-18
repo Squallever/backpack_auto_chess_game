@@ -33,12 +33,11 @@ export interface Item {
   id: string;
   name: string;
   emoji: string;
-  imageUrl?: string; // AI generated image
   type: ItemType;
   rarity: Rarity;
   cost: number;
-  width: number; // Grid width (e.g., 1)
-  height: number; // Grid height (e.g., 2)
+  width: number; // Grid width
+  height: number; // Grid height
   // Summoner stats
   cooldown?: number; // Seconds to spawn
   unitStats?: UnitStats; // Stats of the summoned unit
@@ -65,7 +64,6 @@ export interface Unit {
   id: string; // Unique instance ID
   sourceItemId: string; // To know what emoji/type to render
   emoji: string;
-  imageUrl?: string;
   team: 'PLAYER' | 'ENEMY';
   x: number; // Position 0-100%
   stats: UnitStats;
