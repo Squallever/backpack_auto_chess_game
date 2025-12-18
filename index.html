@@ -3,7 +3,8 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0" />
-    <title>Toy Rumble - AI Powered Bag Battler</title>
+    <title>Toy Rumble - Backpack Battler</title>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
@@ -50,7 +51,7 @@
   </head>
   <body class="text-white h-screen w-screen overflow-hidden bg-slate-900">
     <div id="root"></div>
-    <!-- 显式加载入口脚本 -->
-    <script type="module" src="index.tsx"></script>
+    <!-- 直接加载 index.tsx，不通过 import 避免路径问题 -->
+    <script type="text/babel" data-presets="react,typescript" src="index.tsx"></script>
   </body>
 </html>

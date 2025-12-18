@@ -6,8 +6,8 @@ export enum Rarity {
 }
 
 export enum ItemType {
-  SUMMONER = 'Summoner', // Spawns units
-  BOOSTER = 'Booster',   // Buffs adjacent items
+  SUMMONER = 'Summoner',
+  BOOSTER = 'Booster',
 }
 
 export enum GamePhase {
@@ -24,9 +24,9 @@ export interface UnitStats {
   hp: number;
   maxHp: number;
   attack: number;
-  speed: number; // movement speed
-  range: number; // attack range
-  attackSpeed: number; // attacks per second
+  speed: number;
+  range: number;
+  attackSpeed: number;
 }
 
 export interface Item {
@@ -36,24 +36,21 @@ export interface Item {
   type: ItemType;
   rarity: Rarity;
   cost: number;
-  width: number; // Grid width
-  height: number; // Grid height
-  // Summoner stats
-  cooldown?: number; // Seconds to spawn
-  unitStats?: UnitStats; // Stats of the summoned unit
-  // Booster stats
+  width: number;
+  height: number;
+  cooldown?: number;
+  unitStats?: UnitStats;
   effectDescription: string;
   boostType?: 'SPEED' | 'ATTACK' | 'HEALTH';
   boostValue?: number;
 }
 
 export interface PlacedItem {
-  id: string; // Unique instance ID
+  id: string;
   item: Item;
   x: number;
   y: number;
-  rotation: 0 | 90 | 180 | 270; // Degrees
-  // Runtime stats
+  rotation: 0 | 90 | 180 | 270;
   currentCooldown?: number;
   bonusAttack?: number;
   bonusHp?: number;
@@ -61,11 +58,11 @@ export interface PlacedItem {
 }
 
 export interface Unit {
-  id: string; // Unique instance ID
-  sourceItemId: string; // To know what emoji/type to render
+  id: string;
+  sourceItemId: string;
   emoji: string;
   team: 'PLAYER' | 'ENEMY';
-  x: number; // Position 0-100%
+  x: number;
   stats: UnitStats;
   currentHp: number;
   lastAttackTime: number;
@@ -81,5 +78,5 @@ export interface Opponent {
   name: string;
   description: string;
   avatarEmoji: string;
-  items: PlacedItem[]; // The enemy's backpack setup
+  items: PlacedItem[];
 }
