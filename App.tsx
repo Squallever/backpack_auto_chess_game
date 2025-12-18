@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { PlacedItem, Item, ItemType, GamePhase, Unit, Hero, Opponent } from './types';
 import { BACKPACK_COLS, BACKPACK_ROWS, STARTING_GOLD, LANE_LENGTH, HERO_MAX_HP, MAX_LIVES, SHOP_ITEMS } from './constants';
@@ -27,8 +26,8 @@ const App: React.FC = () => {
   const [storageItems, setStorageItems] = useState<PlacedItem[]>([]);
   
   // Selection
-  const [selectedItemId, setSelectedItemId] = useState<string | null>(null); // For Grid
-  const [selectedStorageId, setSelectedStorageId] = useState<string | null>(null); // For Storage
+  const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
+  const [selectedStorageId, setSelectedStorageId] = useState<string | null>(null);
 
   // Battle Data
   const [opponent, setOpponent] = useState<Opponent | null>(null);
@@ -38,7 +37,6 @@ const App: React.FC = () => {
   const [battleTime, setBattleTime] = useState(0);
   const [commentary, setCommentary] = useState("");
 
-  // Refs for Game Loop
   const lastTimeRef = useRef<number>(0);
   const animationFrameRef = useRef<number>(0);
   const gameStateRef = useRef({
@@ -50,8 +48,8 @@ const App: React.FC = () => {
     isPlaying: false
   });
 
-  // -- AI Artist Logic --
   const handleGenerateAllImages = async () => {
+    if (isGeneratingAll) return;
     setIsGeneratingAll(true);
     const newImages = { ...itemImages };
     try {
@@ -59,28 +57,23 @@ const App: React.FC = () => {
         if (!newImages[item.id]) {
           const url = await generateImage(item.name);
           newImages[item.id] = url;
-          setItemImages({ ...newImages }); // Update incrementally
+          setItemImages({ ...newImages }); 
         }
       }
     } catch (e) {
-      console.error("Image generation failed", e);
+      console.error("AI Image Generation failed:", e);
     } finally {
       setIsGeneratingAll(false);
     }
   };
 
-  // -- Helper: Calculate Adjacency Bonuses --
   const calculateBonuses = (items: PlacedItem[]) => {
-    // Reset bonuses
     const itemsWithBonuses = items.map(i => ({ ...i, bonusAttack: 0, bonusHp: 0, bonusCooldownMultiplier: 1 }));
-    
-    // Create a Map of "Cell Coordinate" -> "Item ID"
     const gridMap = new Map<string, string>();
     itemsWithBonuses.forEach(pi => {
       const isRotated = pi.rotation === 90 || pi.rotation === 270;
       const w = isRotated ? pi.item.height : pi.item.width;
       const h = isRotated ? pi.item.width : pi.item.height;
-      
       for(let y = pi.y; y < pi.y + h; y++) {
         for(let x = pi.x; x < pi.x + w; x++) {
           gridMap.set(`${x},${y}`, pi.id);
@@ -88,15 +81,12 @@ const App: React.FC = () => {
       }
     });
 
-    // Apply Boosts
     itemsWithBonuses.forEach(booster => {
       if (booster.item.type === ItemType.BOOSTER) {
         const isRotated = booster.rotation === 90 || booster.rotation === 270;
         const w = isRotated ? booster.item.height : booster.item.width;
         const h = isRotated ? booster.item.width : booster.item.height;
-
         const neighborIds = new Set<string>();
-
         for(let x = booster.x; x < booster.x + w; x++) {
             const above = gridMap.get(`${x},${booster.y - 1}`);
             if (above && above !== booster.id) neighborIds.add(above);
@@ -109,7 +99,6 @@ const App: React.FC = () => {
             const right = gridMap.get(`${booster.x + w},${y}`);
             if (right && right !== booster.id) neighborIds.add(right);
         }
-
         neighborIds.forEach(nid => {
             const target = itemsWithBonuses.find(i => i.id === nid);
             if (target && target.item.type === ItemType.SUMMONER) {
@@ -120,11 +109,9 @@ const App: React.FC = () => {
         });
       }
     });
-
     return itemsWithBonuses;
   };
 
-  // -- Inventory Management Logic --
   const checkCollision = (list: PlacedItem[], excludeId: string | null, x: number, y: number, w: number, h: number) => {
     if (x < 0 || y < 0 || x + w > BACKPACK_COLS || y + h > BACKPACK_ROWS) return true;
     for (const other of list) {
@@ -220,7 +207,6 @@ const App: React.FC = () => {
       setSelectedStorageId(null);
   };
 
-  // Fix: Added missing storage and game reset handlers
   const handleStorageClick = (item: PlacedItem) => {
     setSelectedStorageId(item.id === selectedStorageId ? null : item.id);
     setSelectedItemId(null);
@@ -309,7 +295,6 @@ const App: React.FC = () => {
       if (deadUnitIds.has(unit.id)) return;
       let target: Unit | Hero | null = null;
       let distToTarget = Infinity;
-      // Fix: Safely handle x property access for Unit and Hero types
       if (unit.team === 'PLAYER') {
         const enemies = state.units.filter(u => u.team === 'ENEMY' && u.x >= unit.x && !deadUnitIds.has(u.id));
         if (enemies.length > 0) { 
@@ -373,33 +358,32 @@ const App: React.FC = () => {
     <div className="flex flex-col items-center justify-center h-full space-y-8 bg-slate-900 z-50 absolute inset-0">
       <div className="text-center animate-in zoom-in duration-500">
         <h1 className="text-6xl md:text-8xl font-black text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary drop-shadow-sm mb-2">TOY RUMBLE</h1>
-        <p className="text-slate-400 text-xl">Bag Battler x Auto Chess</p>
+        <p className="text-slate-400 text-xl font-medium tracking-wide">AI Powered Backpack Auto-Chess</p>
       </div>
-      <button onClick={() => setPhase(GamePhase.SHOP)} className="px-10 py-5 bg-primary hover:bg-indigo-500 text-white text-xl font-bold rounded-2xl shadow-lg flex items-center gap-3"><Play fill="currentColor" size={24} /> PLAY NOW</button>
+      <button onClick={() => setPhase(GamePhase.SHOP)} className="px-10 py-5 bg-primary hover:bg-indigo-500 text-white text-xl font-bold rounded-2xl shadow-[0_0_20px_rgba(99,102,241,0.5)] flex items-center gap-3 transition-all hover:scale-105 active:scale-95"><Play fill="currentColor" size={24} /> ENTER TOYROOM</button>
     </div>
   );
 
   const renderBattleUI = () => (
-    <div className="flex flex-row h-full w-full p-2 gap-2 max-w-7xl mx-auto overflow-hidden">
-      <div className="w-32 sm:w-48 flex flex-col gap-1 bg-slate-800/50 p-2 rounded-xl border border-slate-700 shrink-0">
-        <div className="flex items-center gap-2 mb-1"><div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center text-lg shrink-0">😎</div><div><div className="font-bold text-xs">YOU</div><div className="text-[10px] text-green-400">{playerHero.hp.toFixed(0)} HP</div></div></div>
-        <div className="w-full h-3 bg-slate-700 rounded-full overflow-hidden mb-2"><div className="h-full bg-green-500 transition-all duration-200" style={{ width: `${Math.max(0, (playerHero.hp / HERO_MAX_HP) * 100)}%` }}></div></div>
+    <div className="flex flex-row h-full w-full p-2 gap-2 max-w-7xl mx-auto overflow-hidden bg-slate-900/40">
+      <div className="w-32 sm:w-48 flex flex-col gap-1 bg-slate-800/80 p-2 rounded-xl border border-slate-700 shrink-0">
+        <div className="flex items-center gap-2 mb-1"><div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center text-lg shrink-0 border border-white/20">😎</div><div><div className="font-bold text-xs">YOU</div><div className="text-[10px] text-green-400 font-mono">{playerHero.hp.toFixed(0)} HP</div></div></div>
+        <div className="w-full h-3 bg-slate-700 rounded-full overflow-hidden mb-2 border border-black/40"><div className="h-full bg-gradient-to-r from-green-600 to-green-400 transition-all duration-200" style={{ width: `${Math.max(0, (playerHero.hp / HERO_MAX_HP) * 100)}%` }}></div></div>
         <div className="flex-1 overflow-hidden relative"><div className="absolute top-0 left-0 origin-top-left transform scale-50 sm:scale-75"><Backpack items={gameStateRef.current.isPlaying ? gameStateRef.current.playerItems : placedItems.map(pi => ({...pi, item: {...pi.item, imageUrl: itemImages[pi.item.id]}}))} onCellClick={()=>{}} onItemClick={()=>{}} selectedItemId={null} readOnly={true} isBattling={phase === GamePhase.BATTLE} /></div></div>
       </div>
       <div className="flex-1 flex flex-col relative min-w-0">
-        <div className="absolute top-2 left-1/2 -translate-x-1/2 bg-black/50 px-4 py-1 rounded-full text-sm font-mono text-white z-10 border border-slate-700">{battleTime.toFixed(1)}s</div>
+        <div className="absolute top-2 left-1/2 -translate-x-1/2 bg-slate-900/80 backdrop-blur px-4 py-1 rounded-full text-sm font-mono text-yellow-400 z-10 border border-slate-700 shadow-lg">{battleTime.toFixed(1)}s</div>
         {phase === GamePhase.BATTLE_PREP ? <div className="flex-1 flex items-center justify-center flex-col gap-4"><BrainCircuit className="text-primary animate-pulse" size={64} /><div className="text-xl font-bold text-slate-300">Summoning Opponent...</div></div> : <BattleLane units={units} laneLength={LANE_LENGTH} />}
       </div>
-      <div className="w-32 sm:w-48 flex flex-col gap-1 bg-slate-800/50 p-2 rounded-xl border border-slate-700 shrink-0">
-        <div className="flex items-center justify-end gap-2 mb-1"><div className="text-right"><div className="font-bold text-xs text-red-300">{opponent?.name || 'Enemy'}</div><div className="text-[10px] text-red-400">{enemyHero.hp.toFixed(0)} HP</div></div><div className="w-8 h-8 bg-red-600 rounded-full flex items-center justify-center text-lg shrink-0">{opponent?.avatarEmoji || '😈'}</div></div>
-        <div className="w-full h-3 bg-slate-700 rounded-full overflow-hidden mb-2"><div className="h-full bg-red-500 transition-all duration-200 ml-auto" style={{ width: `${Math.max(0, (enemyHero.hp / HERO_MAX_HP) * 100)}%` }}></div></div>
+      <div className="w-32 sm:w-48 flex flex-col gap-1 bg-slate-800/80 p-2 rounded-xl border border-slate-700 shrink-0">
+        <div className="flex items-center justify-end gap-2 mb-1"><div className="text-right"><div className="font-bold text-xs text-red-300">{opponent?.name || 'Enemy'}</div><div className="text-[10px] text-red-400 font-mono">{enemyHero.hp.toFixed(0)} HP</div></div><div className="w-8 h-8 bg-red-600 rounded-full flex items-center justify-center text-lg shrink-0 border border-white/20">{opponent?.avatarEmoji || '😈'}</div></div>
+        <div className="w-full h-3 bg-slate-700 rounded-full overflow-hidden mb-2 border border-black/40"><div className="h-full bg-gradient-to-l from-red-600 to-red-400 transition-all duration-200 ml-auto" style={{ width: `${Math.max(0, (enemyHero.hp / HERO_MAX_HP) * 100)}%` }}></div></div>
         <div className="flex-1 overflow-hidden relative">{opponent && <div className="absolute top-0 right-0 origin-top-right transform scale-50 sm:scale-75"><Backpack items={gameStateRef.current.isPlaying ? gameStateRef.current.enemyItems : opponent.items} onCellClick={()=>{}} onItemClick={()=>{}} selectedItemId={null} readOnly={true} isBattling={phase === GamePhase.BATTLE} /></div>}</div>
       </div>
     </div>
   );
 
   const renderShopUI = () => {
-    // Inject custom images into SHOP_ITEMS for display
     const mappedShopItems = SHOP_ITEMS.map(i => ({ ...i, imageUrl: itemImages[i.id] }));
     const mappedPlacedItems = placedItems.map(pi => ({ ...pi, item: { ...pi.item, imageUrl: itemImages[pi.item.id] } }));
     const mappedStorageItems = storageItems.map(si => ({ ...si, item: { ...si.item, imageUrl: itemImages[si.item.id] } }));
@@ -407,33 +391,33 @@ const App: React.FC = () => {
     return (
       <div className="flex flex-row h-full w-full p-2 gap-4 max-w-7xl mx-auto overflow-hidden">
         <div className="w-auto shrink-0 flex flex-col gap-2 h-full">
-          <div className="bg-slate-800 p-3 rounded-xl border border-slate-700 flex justify-between items-center shrink-0">
-             <div><span className="font-bold text-slate-300 block text-xs">Rnd {round}</span><div className="flex gap-0.5 mt-1">{Array.from({length: MAX_LIVES}).map((_, i) => <Heart key={i} size={14} className={`${i < lives ? 'text-red-500 fill-red-500' : 'text-slate-700'}`} />)}</div></div>
-             <button onClick={startBattle} className="bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded-lg font-bold shadow-lg animate-pulse hover:animate-none flex items-center gap-2 text-sm">FIGHT <Swords size={16} /></button>
+          <div className="bg-slate-800 p-3 rounded-xl border border-slate-700 flex justify-between items-center shrink-0 shadow-lg">
+             <div><span className="font-bold text-slate-300 block text-xs uppercase tracking-tighter opacity-70">Round {round}</span><div className="flex gap-0.5 mt-1">{Array.from({length: MAX_LIVES}).map((_, i) => <Heart key={i} size={14} className={`${i < lives ? 'text-red-500 fill-red-500' : 'text-slate-700'}`} />)}</div></div>
+             <button onClick={startBattle} className="bg-gradient-to-br from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 text-white px-6 py-2 rounded-lg font-black shadow-[0_4px_10px_rgba(22,163,74,0.4)] animate-pulse hover:animate-none flex items-center gap-2 text-sm transition-all active:translate-y-0.5">FIGHT <Swords size={16} /></button>
           </div>
-          <div className="flex-1 flex flex-col items-center bg-slate-800/30 rounded-xl p-2 border border-slate-700/50 overflow-y-auto">
+          <div className="flex-1 flex flex-col items-center bg-slate-800/30 rounded-xl p-2 border border-slate-700/50 overflow-y-auto shadow-inner">
              <Backpack items={mappedPlacedItems} onCellClick={handleGridCellClick} onItemClick={handleItemClick} selectedItemId={selectedItemId} onRotate={handleRotateItem} onSell={handleSellItem} onStore={handleStoreItem} />
-             <div className="mt-2 text-center text-[10px] text-slate-500 italic max-w-[200px]">{selectedItemId ? 'Move/Rotate/Sell' : 'Select Item'}</div>
+             <div className="mt-2 text-center text-[10px] text-slate-500 italic max-w-[200px]">{selectedItemId ? 'Drag to Move / Tap to Action' : 'Manage your Inventory'}</div>
           </div>
         </div>
-        <div className="flex-1 bg-slate-800/80 rounded-2xl border border-slate-700 p-3 shadow-2xl min-w-0 overflow-hidden flex flex-col h-full">
-           <div className="flex justify-between items-center mb-2 px-1">
+        <div className="flex-1 bg-slate-800/80 rounded-2xl border border-slate-700 p-3 shadow-2xl min-w-0 overflow-hidden flex flex-col h-full backdrop-blur-sm">
+           <div className="flex justify-between items-center mb-3 px-1">
              <div className="flex items-center gap-2">
                 <button 
                   onClick={handleGenerateAllImages} 
                   disabled={isGeneratingAll}
-                  className="bg-accent/10 hover:bg-accent/20 text-accent border border-accent/30 px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-2 transition-all"
+                  className="bg-accent text-slate-900 border border-accent/30 px-4 py-2 rounded-full text-xs font-black flex items-center gap-2 transition-all hover:bg-yellow-400 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_0_15px_rgba(251,191,36,0.3)]"
                 >
-                  {isGeneratingAll ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
-                  {isGeneratingAll ? 'Generating Icons...' : 'AI Artist: Generate Icons'}
+                  {isGeneratingAll ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
+                  {isGeneratingAll ? 'GENERATING...' : 'AI: REMAKE ALL ICONS'}
                 </button>
              </div>
              {selectedItemId && itemImages[placedItems.find(i=>i.id===selectedItemId)?.item.id || ''] && (
                <button 
                 onClick={() => setEditingItemId(placedItems.find(i=>i.id===selectedItemId)?.item.id || null)}
-                className="bg-primary/20 hover:bg-primary/30 text-primary border border-primary/40 px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-2"
+                className="bg-primary/20 hover:bg-primary/40 text-primary border border-primary/40 px-4 py-2 rounded-full text-xs font-black flex items-center gap-2 transition-all"
                >
-                 <Sparkles size={14} /> Edit Item Icon
+                 <Sparkles size={16} /> CUSTOM EDIT
                </button>
              )}
            </div>
@@ -447,16 +431,47 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="w-full h-full relative">
-      <div className="absolute inset-0 pointer-events-none overflow-hidden"><div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/20 blur-[150px] rounded-full"></div><div className="absolute bottom-0 right-1/4 w-96 h-96 bg-secondary/20 blur-[150px] rounded-full"></div></div>
+    <div className="w-full h-full relative bg-slate-950">
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-primary/10 blur-[150px] rounded-full"></div>
+        <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-secondary/10 blur-[150px] rounded-full"></div>
+      </div>
+      
       {phase === GamePhase.MENU && renderMenu()}
       {phase === GamePhase.SHOP && renderShopUI()}
       {(phase === GamePhase.BATTLE || phase === GamePhase.BATTLE_PREP) && renderBattleUI()}
-      {phase === GamePhase.VICTORY && <>{renderBattleUI()}<div className="absolute inset-0 bg-black/80 backdrop-blur-md flex flex-col items-center justify-center z-50 animate-in fade-in"><div className="text-8xl mb-4 animate-bounce">🏆</div><h2 className="text-5xl font-black text-yellow-400 mb-2">VICTORY!</h2><p className="text-slate-300 italic mb-8 px-4 text-center">"{commentary}"</p><button onClick={() => { setRound(r => r + 1); setPhase(GamePhase.SHOP); }} className="px-8 py-3 bg-white text-black font-bold text-xl rounded-full hover:scale-105">Next Round</button></div></>}
-      {phase === GamePhase.DEFEAT && <>{renderBattleUI()}<div className="absolute inset-0 bg-black/80 backdrop-blur-md flex flex-col items-center justify-center z-50 animate-in fade-in"><div className="text-8xl mb-4 text-slate-600">💀</div><h2 className="text-5xl font-black text-red-500 mb-2">DEFEAT</h2><p className="text-slate-400 mb-8">Lives Remaining: {lives}</p><button onClick={() => setPhase(GamePhase.SHOP)} className="px-8 py-3 bg-white text-black font-bold text-xl rounded-full hover:scale-105">Return to Shop</button></div></>}
-      {phase === GamePhase.GAME_OVER && <div className="absolute inset-0 bg-black/90 backdrop-blur-lg flex flex-col items-center justify-center z-50 animate-in zoom-in"><div className="text-9xl mb-4">🪦</div><h2 className="text-6xl font-black text-slate-200 mb-4">GAME OVER</h2><p className="text-xl text-yellow-400 mb-8">You reached Round {round}!</p><button onClick={handleResetGame} className="px-10 py-4 bg-primary text-white font-bold text-2xl rounded-xl hover:bg-indigo-500 shadow-2xl">Play Again</button></div>}
       
-      {/* AI Editor Modal */}
+      {phase === GamePhase.VICTORY && (
+        <>{renderBattleUI()}
+          <div className="absolute inset-0 bg-black/80 backdrop-blur-md flex flex-col items-center justify-center z-50 animate-in fade-in">
+            <div className="text-9xl mb-4 drop-shadow-[0_0_30px_rgba(251,191,36,0.5)]">🏆</div>
+            <h2 className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-b from-yellow-200 to-yellow-500 mb-2">VICTORY</h2>
+            <p className="text-slate-300 italic mb-8 px-6 text-center max-w-lg font-serif text-lg">"{commentary}"</p>
+            <button onClick={() => { setRound(r => r + 1); setPhase(GamePhase.SHOP); }} className="px-12 py-4 bg-white text-black font-black text-xl rounded-full hover:scale-110 active:scale-95 transition-all shadow-2xl">NEXT ROUND</button>
+          </div>
+        </>
+      )}
+      
+      {phase === GamePhase.DEFEAT && (
+        <>{renderBattleUI()}
+          <div className="absolute inset-0 bg-black/80 backdrop-blur-md flex flex-col items-center justify-center z-50 animate-in fade-in">
+            <div className="text-9xl mb-4 text-slate-600 grayscale opacity-50">💀</div>
+            <h2 className="text-6xl font-black text-red-600 mb-2">DEFEAT</h2>
+            <p className="text-slate-400 mb-8 text-xl font-bold uppercase tracking-widest">Lives Remaining: {lives}</p>
+            <button onClick={() => setPhase(GamePhase.SHOP)} className="px-12 py-4 bg-slate-800 text-white font-black text-xl rounded-full hover:bg-slate-700 hover:scale-105 active:scale-95 transition-all border border-slate-600">RETREAT TO SHOP</button>
+          </div>
+        </>
+      )}
+      
+      {phase === GamePhase.GAME_OVER && (
+        <div className="absolute inset-0 bg-black/95 backdrop-blur-lg flex flex-col items-center justify-center z-50 animate-in zoom-in">
+          <div className="text-[10rem] mb-4">🪦</div>
+          <h2 className="text-7xl font-black text-slate-200 mb-2 tracking-tighter">GAME OVER</h2>
+          <p className="text-2xl text-yellow-400 mb-10 font-mono font-bold uppercase">REACHED ROUND {round}</p>
+          <button onClick={handleResetGame} className="px-16 py-6 bg-primary text-white font-black text-3xl rounded-2xl hover:bg-indigo-500 shadow-[0_10px_40px_rgba(99,102,241,0.5)] transition-all hover:scale-105 active:scale-95">NEW CAMPAIGN</button>
+        </div>
+      )}
+      
       {editingItemId && (
         <ImageEditor 
           itemId={editingItemId}

@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0" />
-    <title>Toy Rumble</title>
+    <title>Toy Rumble - AI Powered Bag Battler</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
@@ -29,19 +29,12 @@
         overscroll-behavior: none;
         user-select: none;
         -webkit-tap-highlight-color: transparent;
-        background-color: #000;
+        background-color: #0f172a;
       }
-      /* Custom Scrollbar */
       ::-webkit-scrollbar { width: 4px; height: 4px; }
       ::-webkit-scrollbar-track { background: #1e293b; }
       ::-webkit-scrollbar-thumb { background: #475569; border-radius: 2px; }
-
-      /* Landscape Enforcer for mobile logic if needed, but handled via UI flex mostly */
-      #root {
-        width: 100vw;
-        height: 100vh;
-        overflow: hidden;
-      }
+      #root { width: 100vw; height: 100vh; overflow: hidden; }
     </style>
     <script type="importmap">
     {
@@ -57,5 +50,7 @@
   </head>
   <body class="text-white h-screen w-screen overflow-hidden bg-slate-900">
     <div id="root"></div>
+    <!-- 显式加载入口脚本 -->
+    <script type="module" src="index.tsx"></script>
   </body>
 </html>

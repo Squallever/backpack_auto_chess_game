@@ -5,6 +5,9 @@ import { SHOP_ITEMS, BACKPACK_COLS, BACKPACK_ROWS, STARTING_GOLD } from "../cons
 const getApiKey = () => process.env.API_KEY || '';
 const getRandomItem = <T>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
 
+/**
+ * 使用 gemini-2.5-flash-image 生成“无背景”风格的物品图片
+ */
 export const generateImage = async (prompt: string): Promise<string> => {
   const apiKey = getApiKey();
   if (!apiKey) throw new Error("API Key not found");
@@ -15,7 +18,7 @@ export const generateImage = async (prompt: string): Promise<string> => {
     contents: {
       parts: [
         {
-          text: `A high-quality, professional 3D toy icon of ${prompt}. Isolated on a pure, solid white background. Clean edges, game asset style, vibrant colors, studio lighting, no text, no shadows.`,
+          text: `A high-quality 3D toy game asset of ${prompt}. THE ITEM MUST BE COMPLETELY ISOLATED ON A PURE, SOLID, FLAT WHITE BACKGROUND (#FFFFFF). Cinematic lighting, smooth textures, vibrant colors, 4k resolution, clean sharp edges. No ground shadows, no extra objects, no text. Professional game icon style.`,
         },
       ],
     },
@@ -34,11 +37,13 @@ export const generateImage = async (prompt: string): Promise<string> => {
   throw new Error("No image generated");
 };
 
+/**
+ * 编辑现有图片
+ */
 export const editImage = async (base64Data: string, prompt: string): Promise<string> => {
   const apiKey = getApiKey();
   if (!apiKey) throw new Error("API Key not found");
 
-  // Remove data:image/png;base64, prefix if present
   const cleanBase64 = base64Data.replace(/^data:image\/\w+;base64,/, "");
 
   const ai = new GoogleGenAI({ apiKey });
@@ -53,7 +58,7 @@ export const editImage = async (base64Data: string, prompt: string): Promise<str
           },
         },
         {
-          text: `Modify this toy image based on the following instruction: ${prompt}. Maintain the solid white background and the isolated toy icon style.`,
+          text: `Modify this toy image: ${prompt}. MAINTAIN THE PURE SOLID WHITE BACKGROUND. Do not add environment or floor. Keep it as an isolated game asset icon.`,
         },
       ],
     },
@@ -67,7 +72,6 @@ export const editImage = async (base64Data: string, prompt: string): Promise<str
   throw new Error("Failed to edit image");
 };
 
-// Simple collision check
 const canPlace = (
   items: PlacedItem[], 
   newItem: Item, 
@@ -83,7 +87,6 @@ const canPlace = (
     const pW = pRotated ? placed.item.height : placed.item.width;
     const pH = pRotated ? placed.item.width : placed.item.height;
     
-    // Rect collision
     if (x < placed.x + pW && x + width > placed.x &&
         y < placed.y + pH && y + height > placed.y) {
       return false;
@@ -97,27 +100,20 @@ export const generateOpponent = async (round: number, playerWinCount: number): P
   availableGold += Math.floor(Math.random() * 8) - 2;
 
   const placedItems: PlacedItem[] = [];
-  
-  // Buying Logic
   let attempts = 0;
   let hasSummoner = false;
 
   while (availableGold >= 3 && attempts < 200) {
     attempts++;
-    
-    // Filter affordable
     let affordable = SHOP_ITEMS.filter(i => i.cost <= availableGold);
     if (affordable.length === 0) break;
 
-    // Prioritize Summoners
     if (!hasSummoner) {
        const summoners = affordable.filter(i => i.type === ItemType.SUMMONER);
        if (summoners.length > 0) affordable = summoners;
     }
 
     const choice = getRandomItem(affordable);
-    
-    // Attempt placement (Try random positions and rotations)
     let placed = false;
     for (let t = 0; t < 20; t++) {
         const rot = Math.random() > 0.5 ? 90 : 0;
@@ -160,10 +156,9 @@ export const generateBattleCommentary = async (winnerName: string, durationSecon
 
   try {
     const ai = new GoogleGenAI({ apiKey });
-    const prompt = `Write a very short, funny, 1-sentence commentary about a toy battle victory by ${winnerName} in ${durationSeconds.toFixed(1)} seconds.`;
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
-      contents: prompt,
+      contents: `Write a very short, funny, 1-sentence commentary about a toy battle victory by ${winnerName} in ${durationSeconds.toFixed(1)} seconds.`,
     });
     return response.text || getRandomItem(fallbacks);
   } catch (e) {
